@@ -11,7 +11,7 @@ APP_DIR = BASE_DIR / "app"
 if str(APP_DIR) not in sys.path:
     sys.path.insert(0, str(APP_DIR))
 
-from db.models import Base
+from app.db.models import Base
 config = context.config
 
 if config.config_file_name is not None:

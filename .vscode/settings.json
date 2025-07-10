@@ -2,5 +2,6 @@
     "python.analysis.extraPaths": [
         "./app/db",
         "./app"
-    ]
+    ],
+    "git.ignoreLimitWarning": true
 }

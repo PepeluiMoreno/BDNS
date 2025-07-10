@@ -15,7 +15,7 @@ def normalizar(texto):
     texto = re.sub(r"\s+([.,:;])", r"\1", texto)
     return texto
 
-from db.models import Organo
+from app.db.models import Organo
 def buscar_organo_id(session, nivel1, nivel2, nivel3=None):
     n1 = normalizar(nivel1) if nivel1 else None
     n2 = normalizar(nivel2) if nivel2 else None

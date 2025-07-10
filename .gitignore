@@ -5,3 +5,6 @@ logs/
 .pyc
 __pycache__/
 csv/
+scripts_anteriores/
+logs/
+jsons/

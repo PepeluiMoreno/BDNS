@@ -1,11 +1,42 @@
 from enum import Enum  
 
-class TipoOrgano(str, Enum):
+class TipoOrganoEnum(str, Enum):
     GEOGRAFICO = "G"
     AUTONOMICO = "A"
     LOCAL = "L"
     CENTRAL = "C"
     OTRO = "O"
     
-   
+class FormaJuridicaEnum(str, Enum):
+    PF = "Persona Física"
+    A = "Sociedad Anónima"
+    B = "Sociedad Limitada"
+    C = "Sociedad Colectiva"
+    D = "Sociedad Comanditaria"
+    E = "Comunidad de Bienes"
+    F = "Sociedad Cooperativa"
+    G = "Asociación"
+    H = "Comunidad de Propietarios"
+    J = "Sociedad Civil"
+    N = "Entidad Extranjera"
+    P = "Corporación Local"
+    Q = "Organismo Autónomo, Estatal o no"
+    R = "Congregación o Institución Religiosa"
+    S = "Órgano de la Administración del Estado"
+    U = "Unión Temporal de Empresas"
+    V = "Otros Tipos No Definidos"
+    W = "Establecimiento Permanente de Entidad No Residente"
+    X = "NIE: Extranjero (X)"
+    Y = "NIE: Extranjero (Y)"
+    Z = "NIE: Extranjero (Z)"
+    K = "Menores de 14 años"
+    L = "Españoles residentes en el extranjero"
+    M = "Extranjeros residentes en España"   
     
+class AmbitoReglamentoEnum(str, Enum):
+    CONCESIONES = "C"
+    AYUDAS_ESTADO = "A"
+    DE_MINIMIS = "M"
+    SANCIONES = "S"
+    PARTIDOS_POLITICOS = "P"
+    GRANDES_BENEFICIARIOS = "G"

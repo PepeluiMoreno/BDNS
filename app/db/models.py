@@ -1,4 +1,5 @@
-# models.py
+# File: app/db/models.py
+
 from sqlalchemy import (
     Column,
     Integer,
@@ -10,11 +11,12 @@ from sqlalchemy import (
     Enum as SQLEnum,
     ForeignKey,
     Index,
-    Table
+    Table,
+    UniqueConstraint
 )
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.dialects.postgresql import JSONB
-from db.enums import TipoOrgano
+from app.db.enums import TipoOrganoEnum, FormaJuridicaEnum, AmbitoReglamentoEnum
 
 Base = declarative_base()
 
@@ -71,7 +73,8 @@ class Reglamento(Base):
     id = Column(Integer, primary_key=True)
     descripcion = Column(String)
     descripcion_norm = Column(String)
-
+    ambito = Column(SQLEnum(AmbitoReglamentoEnum, name="ambito_reglamento_enum", native_enum=False), nullable=False)
+    
 class Region(Base):
     __tablename__ = "region"
     id = Column(Integer, primary_key=True)
@@ -86,7 +89,6 @@ class SectorActividad(Base):
     descripcion = Column(String, nullable=False)
     descripcion_norm = Column(String, index=True)
     id_padre = Column(String, ForeignKey("sector_actividad.id"), nullable=True)
-
     padre = relationship("SectorActividad", remote_side=[id], backref="hijos")
 
 class SectorProducto(Base):
@@ -106,7 +108,7 @@ class Organo(Base):
     id = Column(String, primary_key=True)
     id_padre = Column(String, ForeignKey("organo.id"), nullable=True)
     nombre = Column(String, nullable=False)
-    tipo = Column(SQLEnum(TipoOrgano, name="tipo_organo_enum", native_enum=False), nullable=False)
+    tipo = Column(SQLEnum(TipoOrganoEnum, name="tipo_organo_enum", native_enum=False), nullable=False)
     nivel1 = Column(String, nullable=True)
     nivel2 = Column(String, nullable=True)
     nivel3 = Column(String, nullable=True)
@@ -118,7 +120,30 @@ class Organo(Base):
         Index("ix_organo_nivel1_nivel2_nivel3", "nivel1_norm", "nivel2_norm", "nivel3_norm"),
     )
 
+class Beneficiario(Base):
+    __tablename__ = "beneficiario"
+    id = Column(Integer, primary_key=True, autoincrement=False)
+    nif = Column(String, index=True)
+    nombre = Column(String, nullable=False)
+    nombre_norm = Column(String, nullable=False)# ... otros campos ...
 
+    tipo_beneficiario_id = Column(Integer, ForeignKey("tipo_beneficiario.id"))
+    tipo_beneficiario = relationship("TipoBeneficiario")
+
+    forma_juridica = Column(SQLEnum(FormaJuridicaEnum, name="forma_juridica_enum", native_enum=False), nullable=True)
+    pseudonimos = relationship("Pseudonimo", back_populates="beneficiario", cascade="all, delete-orphan")
+    
+class Pseudonimo(Base):
+    __tablename__ = "pseudonimo"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    beneficiario_id = Column(Integer, ForeignKey("beneficiario.id"), nullable=False, index=True)
+    pseudonimo = Column(String, nullable=False)
+    pseudonimo_norm = Column(String, nullable=False)
+   
+    __table_args__ = (UniqueConstraint('beneficiario_id', 'pseudonimo_norm', name='uq_beneficiario_pseudonimo'),)
+
+    beneficiario = relationship("Beneficiario", back_populates="pseudonimos")
+    
 # ================= RELACIONES N:M =================
 
 convocatoria_anuncio = Table(
@@ -181,13 +206,11 @@ convocatoria_tipo_beneficiario = Table(
     Column("tipo_beneficiario_id", Integer, ForeignKey("tipo_beneficiario.id"), primary_key=True),
 )
 
-
 # ================= CONVOCATORIA =================
 
 class Convocatoria(Base):
     __tablename__ = "convocatoria"
-    id = Column(Integer, primary_key=True)
-    codigo_bdns = Column(String, nullable=False, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=False)  #Usamos el codigoBDNS
     descripcion = Column(Text)
     descripcion_leng = Column(Text)
     descripcion_finalidad = Column(Text)
@@ -225,71 +248,53 @@ class Convocatoria(Base):
     anuncios = relationship("Anuncio", secondary="convocatoria_anuncio", back_populates="convocatorias")
     fondos = relationship("Fondo", secondary="convocatoria_fondo")
 
-# ================= CONCESION =================
-
 class Concesion(Base):
     __tablename__ = "concesion"
-    id = Column(Integer, primary_key=True)
-    id_convocatoria = Column(Integer, ForeignKey("convocatoria.id"), nullable=False, index=True)
-    numero_convocatoria = Column(String, index=True)
-    descripcion_convocatoria = Column(String)
-    descripcion_cooficial = Column(String)
-    nivel1 = Column(String)
-    nivel2 = Column(String)
-    nivel3 = Column(String)
-    codigo_invente = Column(String)
+    id = Column(String, primary_key=True, autoincrement=False)   
     fecha_concesion = Column(Date)
-    id_persona = Column(Integer)
-    beneficiario = Column(String)
     importe = Column(Float)
     ayuda_equivalente = Column(Float)
     url_br = Column(String)
     tiene_proyecto = Column(Boolean)
 
-    instrumento_id = Column(Integer, ForeignKey("instrumento.id"))
+    # Relación con convocatoria por codigo_bdns (string, NO por id)
+    codigo_bdns = Column(Integer, ForeignKey("convocatoria.id"), nullable=False, index=True)
+    convocatoria = relationship("Convocatoria", backref="concesiones", foreign_keys=[codigo_bdns])
+
+    id_beneficiario = Column(Integer, ForeignKey("beneficiario.id"), nullable=False, index=True)
+    beneficiario = relationship("Beneficiario", backref="concesiones")
+    id_instrumento = Column(Integer, ForeignKey("instrumento.id"))
     instrumento = relationship("Instrumento")
-
-    convocatoria = relationship("Convocatoria", backref="concesiones")
-
-# ================= MINIMIS =================
 
 class Minimi(Base):
     __tablename__ = "minimi"
-    id = Column(Integer, primary_key=True)
-    codigo_concesion = Column(String, unique=True, index=True)
-    numero_convocatoria = Column(String, index=True)
-    id_convocatoria = Column(Integer, ForeignKey("convocatoria.id"), nullable=False, index=True)
-    id_persona = Column(Integer, index=True)
-    beneficiario = Column(String)
+    id = Column(String, primary_key=True, autoincrement=False)  # Igual que id_concesion
     fecha_concesion = Column(Date, index=True)
     fecha_registro = Column(Date, index=True)
     ayuda_equivalente = Column(Float)
 
-    instrumento_id = Column(Integer, ForeignKey("instrumento.id"), nullable=True)
+    # Relación con concesión (por id, string)
+    concesion_id = Column(String, ForeignKey("concesion.id"), nullable=False, index=True)
+    concesion = relationship("Concesion", backref="minimis")
+
+    # Relación con convocatoria por codigo_bdns (string)
+    codigo_bdns = Column(Integer, ForeignKey("convocatoria.id"), nullable=False, index=True)
+    convocatoria = relationship("Convocatoria", backref="minimis", foreign_keys=[codigo_bdns])
+
+    id_beneficiario = Column(Integer, ForeignKey("beneficiario.id"), nullable=False, index=True)
+    beneficiario = relationship("Beneficiario", backref="minimis")
+    id_instrumento = Column(Integer, ForeignKey("instrumento.id"), nullable=True)
     instrumento = relationship("Instrumento")
-
-    reglamento_id = Column(Integer, ForeignKey("reglamento.id"), nullable=True)
+    id_reglamento = Column(Integer, ForeignKey("reglamento.id"), nullable=True)
     reglamento = relationship("Reglamento")
-
-    sector_actividad_id = Column(String, ForeignKey("sector_actividad.id"), nullable=True)
+    id_sector_actividad = Column(String, ForeignKey("sector_actividad.id"), nullable=True)
     sector_actividad = relationship("SectorActividad")
-
-    sector_producto_id = Column(Integer, ForeignKey("sector_producto.id"), nullable=True)
+    id_sector_producto = Column(Integer, ForeignKey("sector_producto.id"), nullable=True)
     sector_producto = relationship("SectorProducto")
-
-    convocatoria = relationship("Convocatoria", backref="minimis")
-
-# ================= AYUDA ESTADO =================
 
 class AyudaEstado(Base):
     __tablename__ = "ayuda_estado"
-    id = Column(Integer, primary_key=True)
-    id_concesion = Column(Integer, index=True, unique=True, nullable=False)
-    numero_convocatoria = Column(String, index=True)
-    id_convocatoria = Column(Integer, ForeignKey("convocatoria.id"), nullable=False, index=True)
-    id_persona = Column(Integer, index=True)
-    codigo_concesion = Column(String, unique=True, index=True)
-    beneficiario = Column(String)
+    id = Column(Integer, primary_key=True, autoincrement=False)
     fecha_concesion = Column(Date, index=True)
     fecha_registro = Column(Date, index=True)
     ayuda_equivalente = Column(Float)
@@ -298,26 +303,34 @@ class AyudaEstado(Base):
     entidad = Column(String)
     intermediario = Column(String)
 
-    instrumento_id = Column(Integer, ForeignKey("instrumento.id"), nullable=True)
+    # Relación con concesión (por id, string)
+    concesion_id = Column(String, ForeignKey("concesion.id"), nullable=False)
+    concesion = relationship("Concesion", backref="ayudas_estado")
+
+    # Relación con convocatoria por codigo_bdns (string)
+    codigo_bdns = Column(Integer, ForeignKey("convocatoria.id"), nullable=False, index=True)
+    convocatoria = relationship("Convocatoria", backref="ayudas_estado", foreign_keys=[codigo_bdns])
+
+    id_beneficiario = Column(Integer, ForeignKey("beneficiario.id"), nullable=False, index=True)
+    beneficiario = relationship("Beneficiario", backref="ayudas_estado")
+    
+    id_instrumento = Column(Integer, ForeignKey("instrumento.id"), nullable=True)
     instrumento = relationship("Instrumento")
-
-    reglamento_id = Column(Integer, ForeignKey("reglamento.id"), nullable=True)
+    
+    id_reglamento = Column(Integer, ForeignKey("reglamento.id"), nullable=True)
     reglamento = relationship("Reglamento")
-
-    sector_actividad_id = Column(String, ForeignKey("sector_actividad.id"), nullable=True)
+    
+    id_sector_actividad = Column(String, ForeignKey("sector_actividad.id"), nullable=True)
     sector_actividad = relationship("SectorActividad")
-
-    sector_producto_id = Column(Integer, ForeignKey("sector_producto.id"), nullable=True)
+    
+    id_sector_producto = Column(Integer, ForeignKey("sector_producto.id"), nullable=True)
     sector_producto = relationship("SectorProducto")
-
+    
     region_id = Column(Integer, ForeignKey("region.id"), nullable=True)
     region = relationship("Region")
-
+    
     objetivo_id = Column(Integer, ForeignKey("objetivo.id"), nullable=True)
     objetivo = relationship("Objetivo")
-
+    
     tipo_beneficiario_id = Column(Integer, ForeignKey("tipo_beneficiario.id"), nullable=True)
     tipo_beneficiario = relationship("TipoBeneficiario")
-
-    convocatoria = relationship("Convocatoria")
-
