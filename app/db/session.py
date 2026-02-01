@@ -1,40 +1,67 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-import os
-from dotenv import load_dotenv
+"""
+Configuracion de sesion de base de datos para BDNS.
 
-# Cargar variables de entorno
-load_dotenv()
+Este modulo es un wrapper de compatibilidad que reutiliza bdns_core.db.manager.
+Mantiene la API existente para no romper codigo que ya usa get_session().
+"""
 
-# Configuración de conexión
-def get_db_url():
-    if os.getenv('DEBUG', 'True') == 'True':
-        return (
-            f"postgresql://{os.getenv('DB_USER_LOCAL')}:{os.getenv('DB_PASSWORD_LOCAL')}@"
-            f"{os.getenv('DB_HOST_LOCAL')}:{os.getenv('DB_PORT_LOCAL')}/{os.getenv('DB_NAME_LOCAL')}"
-        )
-    else:
-        return (
-            f"oracle+oracledb://{os.getenv('ORACLE_USER')}:{os.getenv('ORACLE_PASSWORD')}@"
-            f"{os.getenv('ORACLE_HOST')}:{os.getenv('ORACLE_PORT')}/?service_name={os.getenv('ORACLE_SERVICE')}"
-        )
+import sys
+from pathlib import Path
 
-# Crear motor de base de datos
-engine = create_engine(
-    get_db_url(),
-    pool_size=5,
-    max_overflow=10,
-    pool_timeout=30,
-    pool_recycle=1800,
+# Agregar bdns_core al path si no esta
+bdns_root = Path(__file__).parent.parent.parent
+if str(bdns_root) not in sys.path:
+    sys.path.insert(0, str(bdns_root))
+
+from bdns_core.db.manager import (
+    sync_db_manager,
+    db_manager,
+    DatabaseConfig,
 )
 
-# Crear sesión
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Re-exportar para compatibilidad con codigo existente
+engine = sync_db_manager.engine
+SessionLocal = sync_db_manager.session_maker
 
-# Base para modelos
-Base = declarative_base()
 
-# Función reutilizable para obtener sesión
 def get_session():
-    return SessionLocal()
+    """
+    Context manager para obtener una sesion sincrona.
+
+    Uso:
+        with get_session() as session:
+            session.query(...)
+    """
+    return sync_db_manager.session()
+
+
+def get_session_direct():
+    """
+    Obtiene una sesion directamente (sin context manager).
+    NOTA: Recuerda cerrar la sesion manualmente.
+    """
+    return sync_db_manager.get_session()
+
+
+def get_async_session():
+    """
+    Context manager para obtener una sesion asincrona.
+
+    Uso:
+        async with get_async_session() as session:
+            await session.execute(...)
+    """
+    return db_manager.session()
+
+
+# Exportaciones
+__all__ = [
+    "engine",
+    "SessionLocal",
+    "get_session",
+    "get_session_direct",
+    "get_async_session",
+    "sync_db_manager",
+    "db_manager",
+    "DatabaseConfig",
+]

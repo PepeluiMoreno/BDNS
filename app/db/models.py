@@ -1,11 +1,13 @@
 # File: app/db/models.py
 
+from datetime import datetime
 from sqlalchemy import (
     Column,
     Integer,
     String,
     Float,
     Date,
+    DateTime,
     Boolean,
     Text,
     Enum as SQLEnum,
@@ -19,6 +21,26 @@ from sqlalchemy.dialects.postgresql import JSONB
 from app.db.enums import TipoOrganoEnum, FormaJuridicaEnum, AmbitoReglamentoEnum
 
 Base = declarative_base()
+
+
+# ================= AUDITORIA Y ETL =================
+
+# NOTA: Los campos de auditoria se definen directamente al final de cada clase
+# para garantizar que aparezcan como las ultimas columnas en las tablas.
+# Campos estandar:
+#   - created_at: DateTime, default=datetime.utcnow, nullable=False, index=True
+#   - updated_at: DateTime, onupdate=datetime.utcnow, nullable=True
+#   - created_by: String(50), nullable=True
+#   - updated_by: String(50), nullable=True
+
+
+class ETLUser(Base):
+    """Usuario/proceso ETL del sistema para auditoria."""
+    __tablename__ = "etl_user"
+
+    id = Column(String(36), primary_key=True)
+    nombre = Column(String(100), unique=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 # ================= CATÁLOGOS =================
 
@@ -125,13 +147,19 @@ class Beneficiario(Base):
     id = Column(Integer, primary_key=True, autoincrement=False)
     nif = Column(String, index=True)
     nombre = Column(String, nullable=False)
-    nombre_norm = Column(String, nullable=False)# ... otros campos ...
+    nombre_norm = Column(String, nullable=False)
 
     tipo_beneficiario_id = Column(Integer, ForeignKey("tipo_beneficiario.id"))
     tipo_beneficiario = relationship("TipoBeneficiario")
 
     forma_juridica = Column(SQLEnum(FormaJuridicaEnum, name="forma_juridica_enum", native_enum=False), nullable=True)
     pseudonimos = relationship("Pseudonimo", back_populates="beneficiario", cascade="all, delete-orphan")
+
+    # Campos de auditoria (siempre al final)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow, nullable=True)
+    created_by = Column(String(50), nullable=True)
+    updated_by = Column(String(50), nullable=True)
     
 class Pseudonimo(Base):
     __tablename__ = "pseudonimo"
@@ -248,9 +276,15 @@ class Convocatoria(Base):
     anuncios = relationship("Anuncio", secondary="convocatoria_anuncio", back_populates="convocatorias")
     fondos = relationship("Fondo", secondary="convocatoria_fondo")
 
+    # Campos de auditoria (siempre al final)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow, nullable=True)
+    created_by = Column(String(50), nullable=True)
+    updated_by = Column(String(50), nullable=True)
+
 class Concesion(Base):
     __tablename__ = "concesion"
-    id = Column(String, primary_key=True, autoincrement=False)   
+    id = Column(String, primary_key=True, autoincrement=False)
     fecha_concesion = Column(Date)
     importe = Column(Float)
     ayuda_equivalente = Column(Float)
@@ -265,6 +299,12 @@ class Concesion(Base):
     beneficiario = relationship("Beneficiario", backref="concesiones")
     id_instrumento = Column(Integer, ForeignKey("instrumento.id"))
     instrumento = relationship("Instrumento")
+
+    # Campos de auditoria (siempre al final)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow, nullable=True)
+    created_by = Column(String(50), nullable=True)
+    updated_by = Column(String(50), nullable=True)
 
 class Minimi(Base):
     __tablename__ = "minimi"
@@ -292,6 +332,12 @@ class Minimi(Base):
     id_sector_producto = Column(Integer, ForeignKey("sector_producto.id"), nullable=True)
     sector_producto = relationship("SectorProducto")
 
+    # Campos de auditoria (siempre al final)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow, nullable=True)
+    created_by = Column(String(50), nullable=True)
+    updated_by = Column(String(50), nullable=True)
+
 class AyudaEstado(Base):
     __tablename__ = "ayuda_estado"
     id = Column(Integer, primary_key=True, autoincrement=False)
@@ -313,24 +359,104 @@ class AyudaEstado(Base):
 
     id_beneficiario = Column(Integer, ForeignKey("beneficiario.id"), nullable=False, index=True)
     beneficiario = relationship("Beneficiario", backref="ayudas_estado")
-    
+
     id_instrumento = Column(Integer, ForeignKey("instrumento.id"), nullable=True)
     instrumento = relationship("Instrumento")
-    
+
     id_reglamento = Column(Integer, ForeignKey("reglamento.id"), nullable=True)
     reglamento = relationship("Reglamento")
-    
+
     id_sector_actividad = Column(String, ForeignKey("sector_actividad.id"), nullable=True)
     sector_actividad = relationship("SectorActividad")
-    
+
     id_sector_producto = Column(Integer, ForeignKey("sector_producto.id"), nullable=True)
     sector_producto = relationship("SectorProducto")
-    
+
     region_id = Column(Integer, ForeignKey("region.id"), nullable=True)
     region = relationship("Region")
-    
+
     objetivo_id = Column(Integer, ForeignKey("objetivo.id"), nullable=True)
     objetivo = relationship("Objetivo")
-    
+
     tipo_beneficiario_id = Column(Integer, ForeignKey("tipo_beneficiario.id"), nullable=True)
     tipo_beneficiario = relationship("TipoBeneficiario")
+
+    # Campos de auditoria (siempre al final)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow, nullable=True)
+    created_by = Column(String(50), nullable=True)
+    updated_by = Column(String(50), nullable=True)
+
+
+# ================= ESTADISTICAS Y SYNC =================
+
+class BeneficiarioEstadisticasAnuales(Base):
+    """
+    Estadisticas agregadas por beneficiario/ejercicio/organo.
+
+    Esta tabla se actualiza automaticamente mediante triggers PostgreSQL
+    cuando se insertan, actualizan o eliminan concesiones.
+    """
+    __tablename__ = "beneficiario_estadisticas_anuales"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    beneficiario_id = Column(Integer, ForeignKey("beneficiario.id"), nullable=False, index=True)
+    ejercicio = Column(Integer, nullable=False, index=True)
+    organo_id = Column(String, ForeignKey("organo.id"), nullable=False, index=True)
+
+    # Metricas
+    num_concesiones = Column(Integer, nullable=False, default=0)
+    importe_total = Column(Float, nullable=False, default=0.0)
+    importe_medio = Column(Float, nullable=False, default=0.0)
+    fecha_primera_concesion = Column(Date, nullable=True)
+    fecha_ultima_concesion = Column(Date, nullable=True)
+
+    # Relaciones
+    beneficiario = relationship("Beneficiario", backref="estadisticas_anuales")
+    organo = relationship("Organo")
+
+    __table_args__ = (
+        UniqueConstraint('beneficiario_id', 'ejercicio', 'organo_id',
+                        name='uq_beneficiario_ejercicio_organo'),
+        Index('ix_estadisticas_ejercicio_organo', 'ejercicio', 'organo_id'),
+    )
+
+    # Campos de auditoria (siempre al final)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow, nullable=True)
+
+
+class SyncControl(Base):
+    """
+    Control de sincronizacion con BDNS.
+
+    Registra cada ejecucion del proceso de sincronizacion mensual
+    que detecta cambios en BDNS (nuevas concesiones, modificadas, eliminadas).
+    """
+    __tablename__ = "sync_control"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    fecha_ejecucion = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    ventana_meses = Column(Integer, nullable=False, default=48)
+    fecha_desde = Column(Date, nullable=False)
+    fecha_hasta = Column(Date, nullable=False)
+
+    # Resultados de deteccion
+    total_api = Column(Integer, nullable=True)
+    total_local = Column(Integer, nullable=True)
+    inserts_detectados = Column(Integer, default=0)
+    updates_detectados = Column(Integer, default=0)
+    deletes_detectados = Column(Integer, default=0)
+
+    # Resultados de aplicacion
+    inserts_aplicados = Column(Integer, default=0)
+    updates_aplicados = Column(Integer, default=0)
+    deletes_aplicados = Column(Integer, default=0)
+
+    # Estado
+    estado = Column(String(20), default='running', index=True)  # running, completed, failed
+    error = Column(Text, nullable=True)
+
+    # Campos de auditoria (siempre al final)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow, nullable=True)

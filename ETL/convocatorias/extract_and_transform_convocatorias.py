@@ -5,6 +5,7 @@ import json
 import logging
 import csv
 import time
+import requests
 from pathlib import Path
 from multiprocessing import Process, Queue
 from datetime import datetime

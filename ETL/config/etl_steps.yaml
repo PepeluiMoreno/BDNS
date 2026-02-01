@@ -1,0 +1,169 @@
+# ETL/config/etl_steps.yaml
+# Configuracion de pasos ETL para BDNS
+#
+# Estructura E-T-L estricta:
+#   - Extract: Descarga datos desde API/fuentes externas -> archivos raw
+#   - Transform: Procesa/enriquece datos raw -> archivos listos para carga
+#   - Load: Carga archivos transformados -> Base de datos
+#
+# Cada paso define:
+#   - name: Identificador unico del paso
+#   - module: Ruta al script (relativa a ETL/)
+#   - description: Descripcion del paso
+#   - depends_on: Lista de pasos que deben completarse antes
+#   - on_error: Accion en caso de error (STOP, CONTINUE, SKIP_DEPENDENTS)
+#   - enabled: Si el paso esta habilitado (default: true)
+#   - args: Argumentos adicionales para el script
+
+steps:
+  # ============ FASE 0: PREREQUISITOS ============
+
+  - name: create_etl_user
+    module: scripts/create_etl_user.py
+    description: Crear usuario ETL del sistema
+    depends_on: []
+    on_error: STOP
+    enabled: true
+
+  # ============ FASE 1: CATALOGOS ============
+  # Los catalogos no tienen fase de transform (datos estaticos)
+
+  - name: load_catalogos
+    module: catalogos/load/load_all_catalogos.py
+    description: Cargar todos los catalogos base (organos, instrumentos, etc.)
+    depends_on: [create_etl_user]
+    on_error: STOP
+    enabled: true
+
+  # ============ FASE 2: CONVOCATORIAS (E -> T -> L) ============
+
+  - name: extract_convocatorias
+    module: convocatorias/extract/extract_convocatorias.py
+    description: Extraer convocatorias desde API BDNS -> JSON raw
+    depends_on: [load_catalogos]
+    on_error: CONTINUE
+    enabled: true
+    args:
+      - "--year"
+      - "{year}"
+
+  - name: transform_convocatorias
+    module: convocatorias/transform/transform_convocatorias.py
+    description: Enriquecer convocatorias con FKs de catalogos
+    depends_on: [extract_convocatorias]
+    on_error: CONTINUE
+    enabled: true
+    args:
+      - "--year"
+      - "{year}"
+
+  - name: load_convocatorias
+    module: convocatorias/load/load_convocatorias.py
+    description: Cargar convocatorias transformadas a BD
+    depends_on: [transform_convocatorias]
+    on_error: CONTINUE
+    enabled: true
+    args:
+      - "--year"
+      - "{year}"
+
+  # ============ FASE 3: CONCESIONES Y BENEFICIARIOS (E -> T -> L) ============
+
+  - name: extract_concesiones
+    module: concesiones/extract/extract_concesiones.py
+    description: Extraer concesiones desde API BDNS -> CSV
+    depends_on: [load_catalogos]
+    on_error: SKIP_DEPENDENTS
+    enabled: true
+    args:
+      - "--year"
+      - "{year}"
+
+  - name: transform_beneficiarios
+    module: beneficiarios/transform/transform_beneficiarios.py
+    description: Extraer y transformar beneficiarios desde CSVs
+    depends_on: [extract_concesiones]
+    on_error: CONTINUE
+    enabled: true
+    args:
+      - "--year"
+      - "{year}"
+
+  - name: load_beneficiarios
+    module: beneficiarios/load/load_beneficiarios.py
+    description: Cargar beneficiarios y pseudonimos a BD
+    depends_on: [transform_beneficiarios]
+    on_error: CONTINUE
+    enabled: true
+    args:
+      - "--year"
+      - "{year}"
+
+  - name: transform_concesiones
+    module: concesiones/transform/transform_concesiones.py
+    description: Validar y preparar concesiones (verificar FKs)
+    depends_on: [extract_concesiones, load_beneficiarios, load_convocatorias]
+    on_error: CONTINUE
+    enabled: true
+    args:
+      - "--year"
+      - "{year}"
+
+  - name: load_concesiones
+    module: concesiones/load/load_concesiones.py
+    description: Cargar concesiones a BD (triggers actualizan estadisticas)
+    depends_on: [transform_concesiones]
+    on_error: CONTINUE
+    enabled: true
+    args:
+      - "--year"
+      - "{year}"
+
+  # ============ FASE 4: MINIMIS (OPCIONAL) ============
+
+  - name: extract_minimis
+    module: minimis/extract/extract_minimis.py
+    description: Extraer minimis desde API BDNS
+    depends_on: [load_concesiones]
+    on_error: CONTINUE
+    enabled: false  # Deshabilitado por defecto
+    args:
+      - "--year"
+      - "{year}"
+
+  - name: load_minimis
+    module: minimis/load/load_minims.py
+    description: Cargar minimis a BD
+    depends_on: [extract_minimis]
+    on_error: CONTINUE
+    enabled: false  # Deshabilitado por defecto
+
+  # ============ FASE 5: ESTADISTICAS (SOLO MANUAL) ============
+
+  - name: recalcular_estadisticas
+    module: estadisticas/load/recalcular_estadisticas.py
+    description: Recalcular estadisticas (solo para carga inicial/reparacion)
+    depends_on: []
+    on_error: STOP
+    enabled: false  # Solo ejecucion manual
+    args:
+      - "--truncate"
+
+  # ============ FASE 6: SINCRONIZACION MENSUAL ============
+
+  - name: sync_detect
+    module: sync/detect_changes.py
+    description: Detectar cambios en BDNS (ventana N meses)
+    depends_on: []
+    on_error: STOP
+    enabled: false  # Solo ejecucion manual/cron
+    args:
+      - "--meses"
+      - "48"
+
+  - name: sync_apply
+    module: sync/apply_changes.py
+    description: Aplicar cambios detectados a BD local
+    depends_on: [sync_detect]
+    on_error: STOP
+    enabled: false  # Solo ejecucion manual/cron
