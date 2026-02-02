@@ -7,6 +7,7 @@ from app.graphql.types.beneficiario import Beneficiario, BeneficiarioInput
 from app.cache.redis_cache import redis_cache
 from fastapi import Depends
 
+
 async def get_beneficiario_by_id(id: str, db: Session = Depends(get_db)) -> Optional[Beneficiario]:
     """Obtener un beneficiario por su ID"""
     # Intentar obtener de caché primero

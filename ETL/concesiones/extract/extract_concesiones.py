@@ -25,9 +25,10 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
     salida = output_dir / f"concesiones_{year}.csv"
 
-    # Campos típicos de la respuesta (revísalo en una muestra, amplía si hace falta)
+    # Campos mapeados para compatibilidad con transform_concesiones.py
+    # API: id -> idConcesion, numeroConvocatoria -> codigoBDNS (código BDNS real)
     cabecera = [
-        "id", "idConvocatoria", "numeroConvocatoria", "idPersona", "beneficiario", 
+        "idConcesion", "codigoBDNS", "idConvocatoria", "idPersona", "beneficiario",
         "importe", "instrumento", "ayudaEquivalente", "fechaConcesion", "urlBR", "tieneProyecto"
     ]
 
@@ -51,9 +52,9 @@ def main():
 
             for row in content:
                 writer.writerow({
-                    "id": row.get("id"),
-                    "idConvocatoria": row.get("idConvocatoria"),
-                    "numeroConvocatoria": row.get("numeroConvocatoria"),
+                    "idConcesion": row.get("id"),
+                    "codigoBDNS": row.get("numeroConvocatoria"),  # Este es el código BDNS real
+                    "idConvocatoria": row.get("idConvocatoria"),  # ID interno (opcional)
                     "idPersona": row.get("idPersona"),
                     "beneficiario": limpiar_campo(row.get("beneficiario")),
                     "importe": row.get("importe"),

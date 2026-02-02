@@ -110,12 +110,19 @@ def enriquecer_convocatoria(session, entrada: dict) -> dict:
     return resultado
 
 
-def procesar_mes(year: int, mes: int, tipo: str) -> tuple[int, int]:
-    """Transforma un archivo JSON raw de un mes/tipo."""
-    raw_path = RUTA_RAW / f"raw_convocatorias_{tipo}_{year}_{mes:02d}.json"
-    out_path = RUTA_TRANSFORMED / f"convocatorias_{tipo}_{year}_{mes:02d}.json"
+def procesar_archivo(raw_path: Path, out_path: Path) -> tuple[int, int]:
+    """
+    Transforma un archivo JSON raw específico.
 
+    Args:
+        raw_path: Ruta al archivo raw de entrada
+        out_path: Ruta al archivo transformado de salida
+
+    Returns:
+        Tupla (transformadas, errores)
+    """
     if not raw_path.exists():
+        log(f"Archivo no encontrado: {raw_path}", "WARNING")
         return 0, 0
 
     with open(raw_path, encoding="utf-8") as f:
@@ -140,15 +147,64 @@ def procesar_mes(year: int, mes: int, tipo: str) -> tuple[int, int]:
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(transformed, f, ensure_ascii=False, indent=2)
 
-    log(f"[{tipo}-{year}-{mes:02d}] Transformadas {len(transformed)} convocatorias -> {out_path}")
+    log(f"Transformadas {len(transformed)} convocatorias -> {out_path.name}")
     return len(transformed), errors
+
+
+def procesar_mes(year: int, mes: int, tipo: str) -> tuple[int, int]:
+    """Transforma un archivo JSON raw de un mes/tipo."""
+    raw_path = RUTA_RAW / f"raw_convocatorias_{tipo}_{year}_{mes:02d}.json"
+    out_path = RUTA_TRANSFORMED / f"convocatorias_{tipo}_{year}_{mes:02d}.json"
+    return procesar_archivo(raw_path, out_path)
+
+
+def procesar_archivo_unico(filepath: str) -> int:
+    """
+    Procesa un archivo raw específico (llamado desde orchestrator).
+
+    Args:
+        filepath: Ruta completa al archivo raw
+
+    Returns:
+        Código de salida (0=ok, 1=error)
+    """
+    raw_path = Path(filepath)
+    if not raw_path.exists():
+        log(f"ERROR: Archivo no encontrado: {filepath}", "ERROR")
+        return 1
+
+    # Generar nombre de salida: raw_convocatorias_X_YYYY_MM.json -> convocatorias_X_YYYY_MM.json
+    filename = raw_path.name
+    if filename.startswith("raw_"):
+        out_filename = filename[4:]  # Quitar "raw_"
+    else:
+        out_filename = filename
+
+    out_path = RUTA_TRANSFORMED / out_filename
+
+    transformed, errors = procesar_archivo(raw_path, out_path)
+
+    if errors > 0:
+        log(f"Completado con {errors} errores")
+        return 1
+
+    return 0
 
 
 def main():
     parser = argparse.ArgumentParser(description=f"{MODULO}: Transforma convocatorias raw.")
-    parser.add_argument("--year", type=int, required=True, help="Ejercicio a procesar")
+    parser.add_argument("--year", type=int, help="Ejercicio a procesar")
     parser.add_argument("--tipo", type=str, default=None, help="Tipo administracion (C/A/L/O)")
+    parser.add_argument("--file", type=str, help="Procesar un archivo raw específico")
     args = parser.parse_args()
+
+    # Modo archivo único (usado por orchestrator)
+    if args.file:
+        return procesar_archivo_unico(args.file)
+
+    # Modo batch (todos los archivos de un año)
+    if not args.year:
+        parser.error("Se requiere --year o --file")
 
     year = args.year
     tipos = [args.tipo] if args.tipo else TIPOS
