@@ -31,11 +31,11 @@ async def get_estadisticas_por_tipo_entidad(
         
         # Aplicar filtros
         if filtros:
-            if filtros.año:
-                stmt = stmt.where(text("año = :año")).params(año=filtros.año)
-            elif filtros.año_desde and filtros.año_hasta:
-                stmt = stmt.where(text("año >= :año_desde AND año <= :año_hasta")).params(
-                    año_desde=filtros.año_desde, año_hasta=filtros.año_hasta
+            if filtros.anio:
+                stmt = stmt.where(text("año = :anio")).params(anio=filtros.anio)
+            elif filtros.anio_desde and filtros.anio_hasta:
+                stmt = stmt.where(text("año >= :anio_desde AND año <= :anio_hasta")).params(
+                    anio_desde=filtros.anio_desde, anio_hasta=filtros.anio_hasta
                 )
             if filtros.tipo_entidad:
                 stmt = stmt.where(text("tipo_entidad = :tipo_entidad")).params(tipo_entidad=filtros.tipo_entidad)
@@ -50,7 +50,7 @@ async def get_estadisticas_por_tipo_entidad(
         estadisticas = [
             EstadisticasConcesiones(
                 tipo_entidad=row[0],
-                año=row[1],
+                anio=row[1],
                 numero_concesiones=row[2],
                 importe_total=row[3]
             )
@@ -77,11 +77,11 @@ async def get_estadisticas_por_tipo_entidad(
         
         # Aplicar filtros
         if filtros:
-            if filtros.año:
-                stmt = stmt.where(ConcesionModel.año == filtros.año)
-            elif filtros.año_desde and filtros.año_hasta:
-                stmt = stmt.where(ConcesionModel.año >= filtros.año_desde)
-                stmt = stmt.where(ConcesionModel.año <= filtros.año_hasta)
+            if filtros.anio:
+                stmt = stmt.where(ConcesionModel.año == filtros.anio)
+            elif filtros.anio_desde and filtros.anio_hasta:
+                stmt = stmt.where(ConcesionModel.año >= filtros.anio_desde)
+                stmt = stmt.where(ConcesionModel.año <= filtros.anio_hasta)
             if filtros.tipo_entidad:
                 stmt = stmt.where(BeneficiarioModel.tipo == filtros.tipo_entidad)
         
@@ -95,7 +95,7 @@ async def get_estadisticas_por_tipo_entidad(
         estadisticas = [
             EstadisticasConcesiones(
                 tipo_entidad=row.tipo,
-                año=row.año,
+                anio=row.año,
                 numero_concesiones=row.numero_concesiones,
                 importe_total=row.importe_total
             )
@@ -130,11 +130,11 @@ async def get_estadisticas_por_organo(
         
         # Aplicar filtros
         if filtros:
-            if filtros.año:
-                stmt = stmt.where(text("año = :año")).params(año=filtros.año)
-            elif filtros.año_desde and filtros.año_hasta:
+            if filtros.anio:
+                stmt = stmt.where(text("año = :año")).params(año=filtros.anio)
+            elif filtros.anio_desde and filtros.anio_hasta:
                 stmt = stmt.where(text("año >= :año_desde AND año <= :año_hasta")).params(
-                    año_desde=filtros.año_desde, año_hasta=filtros.año_hasta
+                    año_desde=filtros.anio_desde, año_hasta=filtros.anio_hasta
                 )
             if filtros.organo_id:
                 stmt = stmt.where(text("organo_id = :organo_id")).params(organo_id=filtros.organo_id)
@@ -150,7 +150,7 @@ async def get_estadisticas_por_organo(
             EstadisticasConcesiones(
                 organo_id=str(row[0]),
                 organo_nombre=row[1],
-                año=row[2],
+                anio=row[2],
                 numero_concesiones=row[3],
                 importe_total=row[4]
             )
@@ -178,11 +178,11 @@ async def get_estadisticas_por_organo(
         
         # Aplicar filtros
         if filtros:
-            if filtros.año:
-                stmt = stmt.where(ConcesionModel.año == filtros.año)
-            elif filtros.año_desde and filtros.año_hasta:
-                stmt = stmt.where(ConcesionModel.año >= filtros.año_desde)
-                stmt = stmt.where(ConcesionModel.año <= filtros.año_hasta)
+            if filtros.anio:
+                stmt = stmt.where(ConcesionModel.año == filtros.anio)
+            elif filtros.anio_desde and filtros.anio_hasta:
+                stmt = stmt.where(ConcesionModel.año >= filtros.anio_desde)
+                stmt = stmt.where(ConcesionModel.año <= filtros.anio_hasta)
             if filtros.organo_id:
                 stmt = stmt.where(OrganoModel.id == filtros.organo_id)
         
@@ -197,7 +197,7 @@ async def get_estadisticas_por_organo(
             EstadisticasConcesiones(
                 organo_id=str(row.id),
                 organo_nombre=row.nombre,
-                año=row.año,
+                anio=row.año,
                 numero_concesiones=row.numero_concesiones,
                 importe_total=row.importe_total
             )
@@ -210,18 +210,18 @@ async def get_estadisticas_por_organo(
         return estadisticas
 
 async def get_concentracion_subvenciones(
-    año: Optional[int] = None,
+    anio: Optional[int] = None,
     tipo_entidad: Optional[str] = None,
     limite: int = 10,
     db: Session = Depends(get_db)
 ) -> List[EstadisticasConcesiones]:
     """Obtener estadísticas de concentración de subvenciones por beneficiario"""
     # Construir clave de caché
-    cache_key = f"estadisticas:concentracion:año:{año or 'todos'}:tipo:{tipo_entidad or 'todos'}:limite:{limite}"
+    cache_key = f"estadisticas:concentracion:anio:{anio or 'todos'}:tipo:{tipo_entidad or 'todos'}:limite:{limite}"
     cached = await redis_cache.get(cache_key)
     if cached:
         return cached
-    
+
     # Intentar usar vista materializada primero
     try:
         stmt = select(
@@ -232,10 +232,10 @@ async def get_concentracion_subvenciones(
             "numero_concesiones",
             "importe_total"
         ).select_from("MV_CONCENTRACION_SUBVENCIONES")
-        
+
         # Aplicar filtros
-        if año:
-            stmt = stmt.where(text("año = :año")).params(año=año)
+        if anio:
+            stmt = stmt.where(text("año = :anio")).params(anio=anio)
         if tipo_entidad:
             stmt = stmt.where(text("tipo_entidad = :tipo_entidad")).params(tipo_entidad=tipo_entidad)
         
@@ -251,7 +251,7 @@ async def get_concentracion_subvenciones(
                 beneficiario_id=str(row[0]),
                 beneficiario_nombre=row[1],
                 tipo_entidad=row[2],
-                año=row[3],
+                anio=row[3],
                 numero_concesiones=row[4],
                 importe_total=row[5]
             )
@@ -284,8 +284,8 @@ async def get_concentracion_subvenciones(
         )
         
         # Aplicar filtros
-        if año:
-            stmt = stmt.where(ConcesionModel.año == año)
+        if anio:
+            stmt = stmt.where(ConcesionModel.año == anio)
         if tipo_entidad:
             stmt = stmt.where(BeneficiarioModel.tipo == tipo_entidad)
         
@@ -301,7 +301,7 @@ async def get_concentracion_subvenciones(
                 beneficiario_id=str(row.id),
                 beneficiario_nombre=row.nombre,
                 tipo_entidad=row.tipo,
-                año=row.año,
+                anio=row.año,
                 numero_concesiones=row.numero_concesiones,
                 importe_total=row.importe_total
             )
@@ -319,12 +319,12 @@ def _build_cache_key_from_filtros(filtros: Optional[FiltroEstadisticas]) -> str:
         return "sin_filtros"
     
     parts = []
-    if filtros.año:
-        parts.append(f"año:{filtros.año}")
-    if filtros.año_desde:
-        parts.append(f"año_desde:{filtros.año_desde}")
-    if filtros.año_hasta:
-        parts.append(f"año_hasta:{filtros.año_hasta}")
+    if filtros.anio:
+        parts.append(f"año:{filtros.anio}")
+    if filtros.anio_desde:
+        parts.append(f"año_desde:{filtros.anio_desde}")
+    if filtros.anio_hasta:
+        parts.append(f"año_hasta:{filtros.anio_hasta}")
     if filtros.tipo_entidad:
         parts.append(f"tipo_entidad:{filtros.tipo_entidad}")
     if filtros.organo_id:

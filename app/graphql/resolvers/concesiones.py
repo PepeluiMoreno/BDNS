@@ -78,8 +78,8 @@ async def get_concesiones(
             stmt = stmt.where(ConcesionModel.importe <= filtros.importe_maximo)
         if filtros.tipo_ayuda:
             stmt = stmt.where(ConcesionModel.tipo_ayuda == filtros.tipo_ayuda)
-        if filtros.año:
-            stmt = stmt.where(ConcesionModel.año == filtros.año)
+        if filtros.anio:
+            stmt = stmt.where(ConcesionModel.año == filtros.anio)
     
     # Ordenar por fecha de concesión descendente
     stmt = stmt.order_by(ConcesionModel.fecha_concesion.desc())
@@ -95,18 +95,18 @@ async def get_concesiones(
 
 async def get_concesiones_por_beneficiario(
     beneficiario_id: str,
-    año: Optional[int] = None,
+    anio: Optional[int] = None,
     limite: int = 100,
     offset: int = 0,
     db: Session = Depends(get_db)
 ) -> List[Concesion]:
     """Obtener concesiones de un beneficiario específico"""
     # Construir clave de caché
-    cache_key = f"concesiones:beneficiario:{beneficiario_id}:año:{año or 'todos'}:limite:{limite}:offset:{offset}"
+    cache_key = f"concesiones:beneficiario:{beneficiario_id}:anio:{anio or 'todos'}:limite:{limite}:offset:{offset}"
     cached = await redis_cache.get(cache_key)
     if cached:
         return cached
-    
+
     # Construir consulta
     stmt = (
         select(ConcesionModel)
@@ -117,10 +117,10 @@ async def get_concesiones_por_beneficiario(
             joinedload(ConcesionModel.beneficiario)
         )
     )
-    
+
     # Filtrar por año si se especifica
-    if año:
-        stmt = stmt.where(ConcesionModel.año == año)
+    if anio:
+        stmt = stmt.where(ConcesionModel.año == anio)
     
     # Ordenar y paginar
     stmt = stmt.order_by(ConcesionModel.fecha_concesion.desc())
@@ -168,5 +168,5 @@ def _map_concesion_model_to_type(model: ConcesionModel) -> Concesion:
         descripcion_proyecto=model.descripcion_proyecto,
         programa_presupuestario=model.programa_presupuestario,
         tipo_ayuda=model.tipo_ayuda,
-        año=model.año
+        anio=model.año
     )

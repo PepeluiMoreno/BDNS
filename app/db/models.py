@@ -460,3 +460,131 @@ class SyncControl(Base):
     # Campos de auditoria (siempre al final)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, onupdate=datetime.utcnow, nullable=True)
+
+
+# ================= USUARIOS Y NOTIFICACIONES =================
+
+class Usuario(Base):
+    """
+    Usuario del sistema con vinculacion a Telegram.
+
+    Permite a usuarios registrarse y vincular su cuenta de Telegram
+    para recibir notificaciones personalizadas.
+    """
+    __tablename__ = "usuario"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    nombre = Column(String(200), nullable=True)
+
+    # Vinculacion Telegram
+    telegram_chat_id = Column(String(50), unique=True, nullable=True, index=True)
+    telegram_username = Column(String(100), nullable=True)
+    telegram_verificado = Column(Boolean, default=False)
+    telegram_token_verificacion = Column(String(64), nullable=True)  # Token temporal para vincular
+
+    # Estado
+    activo = Column(Boolean, default=True)
+
+    # Relacion con suscripciones
+    suscripciones = relationship("SubscripcionNotificacion", back_populates="usuario", cascade="all, delete-orphan")
+
+    # Campos de auditoria (siempre al final)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow, nullable=True)
+
+
+class SubscripcionNotificacion(Base):
+    """
+    Suscripcion a notificaciones basada en queries GraphQL.
+
+    El usuario define una query GraphQL que actua como filtro.
+    El monitor ejecuta periodicamente la query y compara resultados
+    con el snapshot anterior para detectar cambios (CRUD).
+    """
+    __tablename__ = "subscripcion_notificacion"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    usuario_id = Column(Integer, ForeignKey("usuario.id"), nullable=False, index=True)
+
+    # Identificacion
+    nombre = Column(String(200), nullable=False)  # Ej: "Subvenciones a religiosos 2024"
+    descripcion = Column(Text, nullable=True)
+
+    # Query GraphQL que define el filtro
+    graphql_query = Column(Text, nullable=False)
+
+    # Campo identificador para detectar cambios (ej: "id", "codigo_bdns")
+    campo_id = Column(String(50), default="id", nullable=False)
+
+    # Campos a comparar para detectar modificaciones
+    campos_comparar = Column(JSONB, nullable=True)  # ["importe", "fecha_concesion"]
+
+    # Snapshot del ultimo resultado
+    last_result_hash = Column(String(64), nullable=True)  # SHA256 del resultado
+    last_results = Column(JSONB, nullable=True)  # Resultados completos (dict por ID)
+    last_check = Column(DateTime, nullable=True)
+    last_check_count = Column(Integer, nullable=True)  # Numero de registros
+
+    # Scheduling
+    frecuencia = Column(String(20), default='semanal')  # diaria, semanal, mensual
+    hora_preferida = Column(Integer, default=8)  # Hora UTC preferida (0-23)
+    proxima_ejecucion = Column(DateTime, nullable=True, index=True)
+
+    # Control de errores
+    errores_consecutivos = Column(Integer, default=0)
+    max_errores = Column(Integer, default=3)  # Desactivar tras N errores
+    ultimo_error = Column(Text, nullable=True)
+
+    # Estado
+    activo = Column(Boolean, default=True, index=True)
+    pausado_por_errores = Column(Boolean, default=False)
+
+    # Relaciones
+    usuario = relationship("Usuario", back_populates="suscripciones")
+    ejecuciones = relationship("EjecucionNotificacion", back_populates="subscripcion", cascade="all, delete-orphan")
+
+    # Campos de auditoria (siempre al final)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow, nullable=True)
+
+
+class EjecucionNotificacion(Base):
+    """
+    Registro de cada ejecucion del monitor para una suscripcion.
+
+    Guarda historico de ejecuciones, cambios detectados y notificaciones enviadas.
+    """
+    __tablename__ = "ejecucion_notificacion"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    subscripcion_id = Column(Integer, ForeignKey("subscripcion_notificacion.id"), nullable=False, index=True)
+
+    # Resultado de la ejecucion
+    fecha_ejecucion = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    estado = Column(String(20), default='ejecutando')  # ejecutando, completado, error
+
+    # Metricas
+    registros_actuales = Column(Integer, nullable=True)
+    registros_anteriores = Column(Integer, nullable=True)
+
+    # Cambios detectados
+    nuevos = Column(Integer, default=0)
+    modificados = Column(Integer, default=0)
+    eliminados = Column(Integer, default=0)
+
+    # Detalle de cambios (opcional, para auditoria)
+    detalle_cambios = Column(JSONB, nullable=True)  # {nuevos: [...], modificados: [...], eliminados: [...]}
+
+    # Notificacion
+    notificacion_enviada = Column(Boolean, default=False)
+    mensaje_enviado = Column(Text, nullable=True)
+
+    # Error si hubo
+    error = Column(Text, nullable=True)
+
+    # Relaciones
+    subscripcion = relationship("SubscripcionNotificacion", back_populates="ejecuciones")
+
+    # Campos de auditoria (siempre al final)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

@@ -54,6 +54,26 @@ def get_async_session():
     return db_manager.session()
 
 
+# Alias para compatibilidad con notificaciones
+get_db_context = get_session
+
+# Generator para FastAPI dependency injection
+def get_db():
+    """
+    Generator para usar con FastAPI Depends.
+
+    Uso:
+        @app.get("/")
+        def endpoint(db: Session = Depends(get_db)):
+            ...
+    """
+    db = sync_db_manager.get_session()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 # Exportaciones
 __all__ = [
     "engine",
@@ -61,6 +81,8 @@ __all__ = [
     "get_session",
     "get_session_direct",
     "get_async_session",
+    "get_db_context",
+    "get_db",
     "sync_db_manager",
     "db_manager",
     "DatabaseConfig",

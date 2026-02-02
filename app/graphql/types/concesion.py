@@ -2,18 +2,13 @@ import strawberry
 from typing import Optional, List
 from datetime import date
 
+from app.graphql.types.beneficiario import Beneficiario
+
 @strawberry.type
 class Organo:
     id: strawberry.ID
     nombre: str
     codigo: str
-
-@strawberry.type
-class Beneficiario:
-    id: strawberry.ID
-    identificador: str
-    nombre: str
-    tipo: str
 
 @strawberry.type
 class Convocatoria:
@@ -34,7 +29,7 @@ class Concesion:
     descripcion_proyecto: Optional[str]
     programa_presupuestario: Optional[str]
     tipo_ayuda: str
-    año: int
+    anio: int
 
 @strawberry.input
 class ConcesionInput:
@@ -47,4 +42,4 @@ class ConcesionInput:
     importe_minimo: Optional[float] = None
     importe_maximo: Optional[float] = None
     tipo_ayuda: Optional[str] = None
-    año: Optional[int] = None
+    anio: Optional[int] = None
