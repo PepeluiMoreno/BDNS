@@ -165,14 +165,6 @@ function selectRegion(name) {
   selectedRegionName.value = selectedRegionName.value === name ? null : name;
 }
 
-function formatCurrency(value) {
-  return new Intl.NumberFormat('es-ES', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
 
 onMounted(async () => {
   const [concedente, beneficiario] = await Promise.all([
@@ -190,8 +182,5 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-<<<<<<< HEAD
 </style>
-=======
-</style>
->>>>>>> e7805336fc8d7611291f74360e6db4a133e94ba0
+
