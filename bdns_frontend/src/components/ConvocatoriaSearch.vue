@@ -296,4 +296,8 @@ function formatDate(dateString) {
 </script>
 
 <style scoped>
+<<<<<<< HEAD
 </style>
+=======
+</style>
+>>>>>>> e7805336fc8d7611291f74360e6db4a133e94ba0

@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 tailwind.config.js
+=======
+>>>>>>> e7805336fc8d7611291f74360e6db4a133e94ba0
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -23,7 +26,12 @@ export default {
       },
     },
   },
+<<<<<<< HEAD
   plugins: {
     '@tailwindcss/postcss': {},
   },
 }
+=======
+  plugins: [],
+}
+>>>>>>> e7805336fc8d7611291f74360e6db4a133e94ba0

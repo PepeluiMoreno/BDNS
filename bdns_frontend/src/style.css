@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+=======
+@import "tailwindcss";
+>>>>>>> e7805336fc8d7611291f74360e6db4a133e94ba0
 
 :root {
   --primary-color: #0ea5e9;
@@ -74,4 +78,8 @@ html {
 
 #app {
   min-height: 100vh;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> e7805336fc8d7611291f74360e6db4a133e94ba0

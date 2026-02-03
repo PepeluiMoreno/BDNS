@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-#Logs
-=======
 # Logs
->>>>>>> e7805336fc8d7611291f74360e6db4a133e94ba0
 logs
 *.log
 npm-debug.log*
@@ -26,7 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-<<<<<<< HEAD
 
 # Environment variables
 .env
@@ -36,11 +31,3 @@ dist-ssr
 # Build files
 /dist
 /build
-
-
-en vivo
-
-Saltar a en vivo
-
-=======
->>>>>>> e7805336fc8d7611291f74360e6db4a133e94ba0
