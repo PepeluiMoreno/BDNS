@@ -25,8 +25,8 @@ import sys
 # Agregar el directorio raiz al path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
-from app.db.session import get_session
-from app.db.models import Concesion, Instrumento, Beneficiario
+from bdns_core.db.session import get_session
+from bdns_core.db.models import Concesion, Instrumento, Beneficiario
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 

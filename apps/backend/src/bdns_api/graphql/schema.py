@@ -1,90 +1,109 @@
+
 import strawberry
 from typing import List, Optional
-from datetime import date
-from app.graphql.types.concesion import Concesion, ConcesionInput
-from app.graphql.types.beneficiario import Beneficiario, BeneficiarioInput
-from app.graphql.types.estadisticas import EstadisticasConcesiones, FiltroEstadisticas
-from app.graphql.types.notificaciones import (
-    Usuario, Suscripcion, Ejecucion, TelegramLink,
-    FilterDefinition, FieldDefinition, QueryPreview, TestResult,
+
+# ==================== TYPES ====================
+
+from .types.concesion import Concesion, ConcesionInput
+from .types.beneficiario import Beneficiario, BeneficiarioInput
+from .types.estadisticas import EstadisticasConcesiones, FiltroEstadisticas
+from .types.notificaciones import (
+    Usuario,
+    Suscripcion,
+    Ejecucion,
+    TelegramLink,
+    FilterDefinition,
+    FieldDefinition,
+    QueryPreview,
+    TestResult,
     EntidadesDisponibles,
 )
-from app.graphql.resolvers.concesiones import (
+
+# ==================== RESOLVERS ====================
+
+from .resolvers.concesiones import (
     get_concesiones,
     get_concesion_by_id,
     get_concesiones_por_beneficiario,
 )
-from app.graphql.resolvers.beneficiarios import (
+from .resolvers.beneficiarios import (
     get_beneficiarios,
     get_beneficiario_by_id,
 )
-from app.graphql.resolvers.estadisticas import (
+from .resolvers.estadisticas import (
     get_estadisticas_por_tipo_entidad,
     get_estadisticas_por_organo,
     get_concentracion_subvenciones,
 )
-from app.graphql.resolvers import notificaciones as notif
+from .resolvers import notificaciones as notif
+
+
+# ==================== QUERY ====================
 
 @strawberry.type
 class Query:
     @strawberry.field
     async def concesion(self, id: strawberry.ID) -> Optional[Concesion]:
         return await get_concesion_by_id(id)
-    
+
     @strawberry.field
     async def concesiones(
-        self, 
-        filtros: Optional[ConcesionInput] = None, 
-        limite: int = 100, 
-        offset: int = 0
+        self,
+        filtros: Optional[ConcesionInput] = None,
+        limite: int = 100,
+        offset: int = 0,
     ) -> List[Concesion]:
         return await get_concesiones(filtros, limite, offset)
-    
+
     @strawberry.field
     async def beneficiario(self, id: strawberry.ID) -> Optional[Beneficiario]:
         return await get_beneficiario_by_id(id)
-    
+
     @strawberry.field
     async def beneficiarios(
-        self, 
-        filtros: Optional[BeneficiarioInput] = None, 
-        limite: int = 100, 
-        offset: int = 0
+        self,
+        filtros: Optional[BeneficiarioInput] = None,
+        limite: int = 100,
+        offset: int = 0,
     ) -> List[Beneficiario]:
         return await get_beneficiarios(filtros, limite, offset)
-    
+
     @strawberry.field
     async def concesiones_por_beneficiario(
         self,
         beneficiario_id: strawberry.ID,
         anio: Optional[int] = None,
         limite: int = 100,
-        offset: int = 0
+        offset: int = 0,
     ) -> List[Concesion]:
-        return await get_concesiones_por_beneficiario(beneficiario_id, anio, limite, offset)
-    
+        return await get_concesiones_por_beneficiario(
+            beneficiario_id, anio, limite, offset
+        )
+
     @strawberry.field
     async def estadisticas_por_tipo_entidad(
-        self, 
-        filtros: Optional[FiltroEstadisticas] = None
+        self,
+        filtros: Optional[FiltroEstadisticas] = None,
     ) -> List[EstadisticasConcesiones]:
         return await get_estadisticas_por_tipo_entidad(filtros)
-    
+
     @strawberry.field
     async def estadisticas_por_organo(
-        self, 
-        filtros: Optional[FiltroEstadisticas] = None
+        self,
+        filtros: Optional[FiltroEstadisticas] = None,
     ) -> List[EstadisticasConcesiones]:
         return await get_estadisticas_por_organo(filtros)
-    
+
     @strawberry.field
     async def concentracion_subvenciones(
         self,
         anio: Optional[int] = None,
         tipo_entidad: Optional[str] = None,
-        limite: int = 10
+        limite: int = 10,
     ) -> List[EstadisticasConcesiones]:
-        return await get_concentracion_subvenciones(anio, tipo_entidad, limite)
+        return await get_concentracion_subvenciones(
+            anio, tipo_entidad, limite
+        )
 
     # ==================== NOTIFICACIONES ====================
 
@@ -93,7 +112,7 @@ class Query:
         self,
         activo: Optional[bool] = None,
         limite: int = 100,
-        offset: int = 0
+        offset: int = 0,
     ) -> List[Usuario]:
         return await notif.get_usuarios(activo, limite, offset)
 
@@ -107,9 +126,11 @@ class Query:
         usuario_id: Optional[int] = None,
         activo: Optional[bool] = None,
         limite: int = 100,
-        offset: int = 0
+        offset: int = 0,
     ) -> List[Suscripcion]:
-        return await notif.get_suscripciones(usuario_id, activo, limite, offset)
+        return await notif.get_suscripciones(
+            usuario_id, activo, limite, offset
+        )
 
     @strawberry.field
     async def suscripcion(self, id: int) -> Optional[Suscripcion]:
@@ -121,25 +142,28 @@ class Query:
         subscripcion_id: Optional[int] = None,
         estado: Optional[str] = None,
         limite: int = 100,
-        offset: int = 0
+        offset: int = 0,
     ) -> List[Ejecucion]:
-        return await notif.get_ejecuciones(subscripcion_id, estado, limite, offset)
+        return await notif.get_ejecuciones(
+            subscripcion_id, estado, limite, offset
+        )
 
     # ==================== QUERY BUILDER ====================
 
     @strawberry.field
     async def entidades_disponibles(self) -> EntidadesDisponibles:
-        """Entidades disponibles para crear suscripciones."""
         return await notif.get_entidades_disponibles()
 
     @strawberry.field
-    async def filtros_disponibles(self, entity: str) -> List[FilterDefinition]:
-        """Filtros disponibles para una entidad."""
+    async def filtros_disponibles(
+        self, entity: str
+    ) -> List[FilterDefinition]:
         return await notif.get_filtros_disponibles(entity)
 
     @strawberry.field
-    async def campos_disponibles(self, entity: str) -> List[FieldDefinition]:
-        """Campos seleccionables para una entidad."""
+    async def campos_disponibles(
+        self, entity: str
+    ) -> List[FieldDefinition]:
         return await notif.get_campos_disponibles(entity)
 
     @strawberry.field
@@ -148,10 +172,11 @@ class Query:
         entity: str,
         filters: strawberry.scalars.JSON,
         fields: Optional[List[str]] = None,
-        limite: int = 1000
+        limite: int = 1000,
     ) -> QueryPreview:
-        """Genera preview de query GraphQL desde filtros."""
-        return await notif.preview_query(entity, filters or {}, fields, limite)
+        return await notif.preview_query(
+            entity, filters or {}, fields, limite
+        )
 
     @strawberry.field
     async def test_query(
@@ -159,23 +184,22 @@ class Query:
         entity: str,
         filters: strawberry.scalars.JSON,
         fields: Optional[List[str]] = None,
-        limite: int = 100
+        limite: int = 100,
     ) -> TestResult:
-        """Ejecuta query en modo test."""
-        return await notif.test_query(entity, filters or {}, fields, limite)
+        return await notif.test_query(
+            entity, filters or {}, fields, limite
+        )
 
+
+# ==================== MUTATION ====================
 
 @strawberry.type
 class Mutation:
-    """Mutations para gestionar notificaciones."""
-
-    # ==================== USUARIOS ====================
-
     @strawberry.mutation
     async def crear_usuario(
         self,
         email: str,
-        nombre: Optional[str] = None
+        nombre: Optional[str] = None,
     ) -> Usuario:
         return await notif.crear_usuario(email, nombre)
 
@@ -185,20 +209,21 @@ class Mutation:
         id: int,
         email: Optional[str] = None,
         nombre: Optional[str] = None,
-        activo: Optional[bool] = None
+        activo: Optional[bool] = None,
     ) -> Optional[Usuario]:
-        return await notif.actualizar_usuario(id, email, nombre, activo)
+        return await notif.actualizar_usuario(
+            id, email, nombre, activo
+        )
 
     @strawberry.mutation
     async def eliminar_usuario(self, id: int) -> bool:
         return await notif.eliminar_usuario(id)
 
     @strawberry.mutation
-    async def generar_link_telegram(self, usuario_id: int) -> Optional[TelegramLink]:
-        """Genera token para vincular cuenta de Telegram."""
+    async def generar_link_telegram(
+        self, usuario_id: int
+    ) -> Optional[TelegramLink]:
         return await notif.generar_link_telegram(usuario_id)
-
-    # ==================== SUSCRIPCIONES ====================
 
     @strawberry.mutation
     async def crear_suscripcion(
@@ -210,11 +235,17 @@ class Mutation:
         campo_id: str = "id",
         campos_comparar: Optional[List[str]] = None,
         frecuencia: str = "semanal",
-        hora_preferida: int = 8
+        hora_preferida: int = 8,
     ) -> Optional[Suscripcion]:
         return await notif.crear_suscripcion(
-            usuario_id, nombre, graphql_query, descripcion,
-            campo_id, campos_comparar, frecuencia, hora_preferida
+            usuario_id,
+            nombre,
+            graphql_query,
+            descripcion,
+            campo_id,
+            campos_comparar,
+            frecuencia,
+            hora_preferida,
         )
 
     @strawberry.mutation
@@ -228,12 +259,18 @@ class Mutation:
         fields: Optional[List[str]] = None,
         limite: int = 1000,
         frecuencia: str = "semanal",
-        hora_preferida: int = 8
+        hora_preferida: int = 8,
     ) -> Optional[Suscripcion]:
-        """Crea suscripcion directamente desde el query builder."""
         return await notif.crear_suscripcion_desde_builder(
-            usuario_id, nombre, entity, filters or {},
-            descripcion, fields, limite, frecuencia, hora_preferida
+            usuario_id,
+            nombre,
+            entity,
+            filters or {},
+            descripcion,
+            fields,
+            limite,
+            frecuencia,
+            hora_preferida,
         )
 
     @strawberry.mutation
@@ -248,11 +285,19 @@ class Mutation:
         frecuencia: Optional[str] = None,
         hora_preferida: Optional[int] = None,
         activo: Optional[bool] = None,
-        max_errores: Optional[int] = None
+        max_errores: Optional[int] = None,
     ) -> Optional[Suscripcion]:
         return await notif.actualizar_suscripcion(
-            id, nombre, descripcion, graphql_query, campo_id,
-            campos_comparar, frecuencia, hora_preferida, activo, max_errores
+            id,
+            nombre,
+            descripcion,
+            graphql_query,
+            campo_id,
+            campos_comparar,
+            frecuencia,
+            hora_preferida,
+            activo,
+            max_errores,
         )
 
     @strawberry.mutation
@@ -260,15 +305,18 @@ class Mutation:
         return await notif.eliminar_suscripcion(id)
 
     @strawberry.mutation
-    async def ejecutar_suscripcion(self, id: int) -> Optional[Ejecucion]:
-        """Ejecuta manualmente una suscripcion."""
+    async def ejecutar_suscripcion(
+        self, id: int
+    ) -> Optional[Ejecucion]:
         return await notif.ejecutar_suscripcion(id)
 
     @strawberry.mutation
-    async def reactivar_suscripcion(self, id: int) -> Optional[Suscripcion]:
-        """Reactiva una suscripcion pausada por errores."""
+    async def reactivar_suscripcion(
+        self, id: int
+    ) -> Optional[Suscripcion]:
         return await notif.reactivar_suscripcion(id)
 
 
-# Crear esquema
+# ==================== SCHEMA ====================
+
 schema = strawberry.Schema(query=Query, mutation=Mutation)

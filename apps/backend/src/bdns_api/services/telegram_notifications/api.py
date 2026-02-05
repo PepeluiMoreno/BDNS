@@ -34,8 +34,8 @@ from sqlalchemy.orm import Session
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from app.db.session import get_db
-from app.db.models import Usuario, SubscripcionNotificacion, EjecucionNotificacion
+from bdns_core.db.session import get_db
+from bdns_core.db.models import Usuario, SubscripcionNotificacion, EjecucionNotificacion
 
 router = APIRouter(prefix="/api/notificaciones", tags=["notificaciones"])
 

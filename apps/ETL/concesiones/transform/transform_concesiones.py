@@ -19,8 +19,8 @@ import logging
 import argparse
 from pathlib import Path
 from datetime import datetime
-from app.db.session import get_session
-from app.db.models import Beneficiario, Convocatoria, Instrumento
+from bdns_core.db.session import get_session
+from bdns_core.db.models import Beneficiario, Convocatoria, Instrumento
 from ETL.etl_utils import get_or_create_dir
 
 MODULO = "transform_concesiones"

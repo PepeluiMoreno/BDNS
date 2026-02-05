@@ -278,7 +278,7 @@ def process_subscription(session, subscripcion) -> bool:
     Returns:
         True si hubo cambios, False si no
     """
-    from app.db.models import EjecucionNotificacion
+    from bdns_core.db.models import EjecucionNotificacion
 
     log(f"Procesando: {subscripcion.nombre} (ID: {subscripcion.id})")
 
@@ -371,7 +371,7 @@ def process_subscription(session, subscripcion) -> bool:
 
 def run_once():
     """Ejecuta una vez todas las suscripciones pendientes."""
-    from app.db.models import SubscripcionNotificacion
+    from bdns_core.db.models import SubscripcionNotificacion
 
     log("Iniciando ejecucion unica del monitor")
 
@@ -415,7 +415,7 @@ def test_subscription(subscription_id: int, limit: int = 100):
 
     Muestra los primeros N registros sin guardar ni notificar.
     """
-    from app.db.models import SubscripcionNotificacion
+    from bdns_core.db.models import SubscripcionNotificacion
 
     log(f"Modo TEST para suscripcion ID: {subscription_id}")
 

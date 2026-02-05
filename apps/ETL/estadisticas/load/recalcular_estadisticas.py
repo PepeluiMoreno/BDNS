@@ -20,7 +20,7 @@ import logging
 import argparse
 from datetime import datetime
 from sqlalchemy import text
-from app.db.session import get_session
+from bdns_core.db.session import get_session
 from ETL.etl_utils import get_or_create_dir
 
 MODULO = "recalcular_estadisticas"

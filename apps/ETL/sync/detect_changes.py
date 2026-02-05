@@ -28,8 +28,8 @@ from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from sqlalchemy import text
-from app.db.session import get_session
-from app.db.models import SyncControl
+from bdns_core.db.session import get_session
+from bdns_core.db.models import SyncControl
 from ETL.etl_utils import get_or_create_dir
 
 MODULO = "detect_changes"

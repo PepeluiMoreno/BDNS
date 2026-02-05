@@ -9,7 +9,7 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column
-from app.db.base import Base
+from bdns_core.db.base import Base
 
 
 class EtlJob(Base):

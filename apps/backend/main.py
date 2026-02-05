@@ -5,7 +5,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
 
-from backend.graphql.schema import schema  # Import absoluto nuevo
+from bdns_api.graphql import graphql_schema as schema
+
+
 
 # Crear app FastAPI
 app = FastAPI(

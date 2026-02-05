@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: bdns-api
+Version: 0.1.0
+Requires-Dist: fastapi
+Requires-Dist: uvicorn
+Requires-Dist: strawberry-graphql
+Requires-Dist: sqlalchemy
+Requires-Dist: alembic
+Requires-Dist: bdns_core

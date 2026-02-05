@@ -1,8 +1,8 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from app.db.session import get_db
-from app.db.models import Beneficiario as BeneficiarioModel
+from bdns_core.db.session import get_db
+from bdns_core.db.models import Beneficiario as BeneficiarioModel
 from app.graphql.types.beneficiario import Beneficiario, BeneficiarioInput
 from app.cache.redis_cache import redis_cache
 from fastapi import Depends

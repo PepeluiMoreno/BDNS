@@ -17,8 +17,8 @@ from pathlib import Path
 # Agregar el directorio raiz al path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from app.db.session import get_session
-from app.db.models import ETLUser
+from bdns_core.db.session import get_session
+from bdns_core.db.models import ETLUser
 
 ETL_USERNAME = "etl_system"
 ETL_DESCRIPTION = "Usuario del sistema para procesos ETL automatizados"

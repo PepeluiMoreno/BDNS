@@ -5,8 +5,8 @@ import logging
 import json
 import csv
 from pathlib import Path
-from app.db.session import SessionLocal
-from app.db.models import (
+from bdns_core.db.session import SessionLocal
+from bdns_core.db.models import (
     Convocatoria, Instrumento, TipoBeneficiario, Finalidad, Objetivo, Organo,
     Reglamento, Fondo, Region, SectorActividad, SectorProducto
 )

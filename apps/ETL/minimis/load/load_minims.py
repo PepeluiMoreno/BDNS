@@ -6,8 +6,8 @@ import csv
 from pathlib import Path
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import insert
-from app.db.models import Minimi, Instrumento, Reglamento, SectorActividad, SectorProducto
-from app.db.session import SessionLocal
+from bdns_core.db.models import Minimi, Instrumento, Reglamento, SectorActividad, SectorProducto
+from bdns_core.db.session import SessionLocal
 
 CSV_PATH = Path("ETL/control/minimis_2024.csv")  # Modifica el año si es necesario
 

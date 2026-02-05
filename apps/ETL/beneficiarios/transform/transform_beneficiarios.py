@@ -20,7 +20,7 @@ import argparse
 from pathlib import Path
 from datetime import datetime
 from collections import defaultdict
-from app.db.utils import normalizar
+from bdns_core.db.utils import normalizar
 from ETL.etl_utils import get_or_create_dir
 
 MODULO = "transform_beneficiarios"

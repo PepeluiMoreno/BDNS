@@ -1,11 +1,11 @@
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func
-from app.db.session import get_db
-from app.db.models import Concesion as ConcesionModel
-from app.db.models import Beneficiario as BeneficiarioModel
-from app.db.models import Organo as OrganoModel
-from app.db.models import Convocatoria as ConvocatoriaModel
+from bdns_core.db.session import get_db
+from bdns_core.db.models import Concesion as ConcesionModel
+from bdns_core.db.models import Beneficiario as BeneficiarioModel
+from bdns_core.db.models import Organo as OrganoModel
+from bdns_core.db.models import Convocatoria as ConvocatoriaModel
 from app.graphql.types.concesion import Concesion, ConcesionInput
 from app.cache.redis_cache import redis_cache
 from fastapi import Depends

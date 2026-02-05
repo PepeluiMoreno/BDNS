@@ -12,8 +12,8 @@ from datetime import datetime
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from app.db.session import get_db_context
-from app.db.models import Usuario, SubscripcionNotificacion, EjecucionNotificacion
+from bdns_core.db.session import get_db_context
+from bdns_core.db.models import Usuario, SubscripcionNotificacion, EjecucionNotificacion
 from app.graphql.types.notificaciones import (
     Usuario as UsuarioType,
     Suscripcion as SuscripcionType,

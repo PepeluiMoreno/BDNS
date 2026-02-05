@@ -1,2 +1,2 @@
-# bdns_core/__init__.py
+#packages\bdns_core\__init__.py
 

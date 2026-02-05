@@ -24,8 +24,8 @@ from pathlib import Path
 from datetime import datetime, date
 from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from app.db.session import get_session
-from app.db.models import Concesion, SyncControl
+from bdns_core.db.session import get_session
+from bdns_core.db.models import Concesion, SyncControl
 from ETL.etl_utils import get_or_create_dir
 
 MODULO = "apply_changes"

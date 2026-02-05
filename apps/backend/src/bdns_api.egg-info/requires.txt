@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+strawberry-graphql
+sqlalchemy
+alembic
+bdns_core

@@ -35,12 +35,12 @@ logging.basicConfig(
 logger = logging.getLogger("ETL_inicializacion")
 
 
-from app.db.session import SessionLocal, engine
-from app.db.models import (
+from bdns_core.db.session import SessionLocal, engine
+from bdns_core.db.models import (
     Base, Organo, Instrumento, Reglamento, SectorActividad, SectorProducto,
     TipoBeneficiario, Finalidad, Fondo, Objetivo, Region
 )
-from app.db.enums import TipoOrganoEnum
+from bdns_core.db.enums import TipoOrganoEnum
 
 
 # --- Importa las funciones de los módulos de ETL---

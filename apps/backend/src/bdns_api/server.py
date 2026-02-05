@@ -1,25 +1,21 @@
 """
-BDNS Server - Wrapper de desarrollo
+BDNS Server – wrapper de desarrollo
 
-Uso:
+Uso recomendado:
+    PYTHONPATH=src uvicorn bdns_api.main:app --reload
+
+Uso alternativo (solo dev):
     python server.py
-    uvicorn server:app --reload --port 8000
 """
-import sys
-from pathlib import Path
 
-# Setup paths para desarrollo local
-PROJECT_ROOT = Path(__file__).parent
-sys.path.insert(0, str(PROJECT_ROOT / "src"))
+import uvicorn
 
-from backend.main import app  # Import desde el paquete
 
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(
-        "bdns_backend.main:app",  # String para reload
+        "bdns_api.main:app",
         host="0.0.0.0",
         port=8000,
         reload=True,
-        reload_dirs=["src"]
+        reload_dirs=["src"],
     )

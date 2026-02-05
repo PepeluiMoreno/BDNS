@@ -1,0 +1,6 @@
+pyproject.toml
+bdns_core.egg-info/PKG-INFO
+bdns_core.egg-info/SOURCES.txt
+bdns_core.egg-info/dependency_links.txt
+bdns_core.egg-info/requires.txt
+bdns_core.egg-info/top_level.txt

@@ -7,9 +7,9 @@ import sys
 from pathlib import Path
 from collections import defaultdict
 from sqlalchemy.dialects.postgresql import insert
-from app.db.models import Beneficiario, Pseudonimo
-from app.db.session import SessionLocal
-from app.db.utils import normalizar
+from bdns_core.db.models import Beneficiario, Pseudonimo
+from bdns_core.db.session import SessionLocal
+from bdns_core.db.utils import normalizar
 
 CONTROL_DIR = Path("ETL/control")
 

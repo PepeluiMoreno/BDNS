@@ -1,9 +1,9 @@
 # load_organos.py
 import logging
 import requests
-from app.db.models import Organo
-from app.db.utils import normalizar
-from app.db.enums import TipoOrganoEnum
+from bdns_core.db.models import Organo
+from bdns_core.db.utils import normalizar
+from bdns_core.db.enums import TipoOrganoEnum
 from sqlalchemy.exc import SQLAlchemyError
 
 BASE_URL = "https://www.infosubvenciones.es/bdnstrans/api/organos?vpd=GE&idAdmon="

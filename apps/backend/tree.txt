@@ -1,0 +1,17 @@
+Listado de rutas de carpetas para el volumen System
+El n£mero de serie del volumen es 4273-7F2D
+C:.
+ÃÄÄÄalembic
+³   ÃÄÄÄversions
+³   ³   ÀÄÄÄ__pycache__
+³   ÀÄÄÄ__pycache__
+ÀÄÄÄsrc
+    ÀÄÄÄbdns_api
+        ÃÄÄÄapi
+        ÃÄÄÄcore
+        ÃÄÄÄgraphql
+        ³   ÃÄÄÄresolvers
+        ³   ÀÄÄÄtypes
+        ÀÄÄÄservices
+            ÀÄÄÄtelegram_notifications
+                ÀÄÄÄ__pycache__

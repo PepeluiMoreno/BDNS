@@ -2,8 +2,8 @@
 import logging
 import requests
 import csv
-from app.db.utils import normalizar
-from app.db.models import (
+from bdns_core.db.utils import normalizar
+from bdns_core.db.models import (
     Fondo, Region, Reglamento,
     SectorActividad
 )

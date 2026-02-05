@@ -2,8 +2,10 @@
 #!/usr/bin/env python3
 import logging
 from concurrent.futures import ProcessPoolExecutor
-from app.db.session import get_session
-from app.db.models.etl_job import EtlJob
+#from bdns_core.db.session import get_session
+#from bdns_core.db.models.etl_job import EtlJob
+from bdns_core.db.session import get_session 
+from bdns_core.db.models.etl_job import EtlJob
 from sqlalchemy import text
 from datetime import datetime
 import subprocess

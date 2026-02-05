@@ -20,7 +20,7 @@ from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
 
-from app.db.enums import (
+from bdns_core.db.enums import (
     TipoOrganoEnum,
     FormaJuridicaEnum,
     AmbitoReglamentoEnum,
