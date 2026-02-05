@@ -1,11 +1,23 @@
-from logging.config import fileConfig
-from sqlalchemy import engine_from_config, pool
-from alembic import context
+import sys
+from pathlib import Path
 
+# Agregar el path de bdns_core al sys.path
+alembic_dir = Path(__file__).parent.resolve()
+backend_dir = alembic_dir.parent.resolve()
+project_root = backend_dir.parent.parent.resolve()
+bdns_core_src = project_root / "packages" / "bdns_core" / "src"
+
+if str(bdns_core_src) not in sys.path:
+    sys.path.insert(0, str(bdns_core_src))
+
+# Ahora los imports funcionan
 from bdns_core.db.base import Base
-from bdns_core.db.models import *  # importa TODOS los modelos
+from bdns_core.db.models.models import *
+
 
 target_metadata = Base.metadata
+
+print(Base.metadata.tables.keys())
 
 config = context.config
 

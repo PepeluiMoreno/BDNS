@@ -1,0 +1,78 @@
+version: "3.8"
+
+services:
+  # Backend API
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: bdns-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:pass@db:5432/bdns
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - db
+      - redis
+    networks:
+      - bdns-network
+
+  # Frontend
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    container_name: bdns-frontend
+    ports:
+      - "80:80"
+    environment:
+      - VITE_GRAPHQL_URL=http://backend:8000/graphql
+    depends_on:
+      - backend
+    networks:
+      - bdns-network
+
+  # ETL (ejecutable bajo demanda o cron)
+  etl:
+    build:
+      context: ./apps/etl
+      dockerfile: Dockerfile
+    container_name: bdns-etl
+    environment:
+      - DATABASE_URL=postgresql://user:pass@db:5432/bdns
+    depends_on:
+      - db
+    networks:
+      - bdns-network
+    profiles:
+      - etl
+
+  # Base de datos
+  db:
+    image: postgres:16-alpine
+    container_name: bdns-db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=bdns
+    ports:
+      - "5432:5432"
+    networks:
+      - bdns-network
+
+  # Redis para cache
+  redis:
+    image: redis:7-alpine
+    container_name: bdns-redis
+    networks:
+      - bdns-network
+
+volumes:
+  postgres_data:
+
+networks:
+  bdns-network:
+    driver: bridge

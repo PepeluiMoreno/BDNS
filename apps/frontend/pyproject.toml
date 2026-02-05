@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bdns-frontend"
+version = "1.0.0"
+description = "BDNS Frontend - Vue 3 + Tailwind CSS"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.hatch.build.targets.wheel]
+bypass-selection = true
+
+[tool.hatch.envs.default]
+detached = true
+
+[tool.hatch.envs.default.scripts]
+build = "npm ci && npm run build"tree

@@ -1,6 +1,7 @@
 # File: app/db/models.py
 # app/db/models.py
 
+
 from datetime import datetime
 from sqlalchemy import (
     Column,
@@ -16,18 +17,12 @@ from sqlalchemy import (
     Table,
     UniqueConstraint,
 )
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
+from base  import Base
 
-from bdns_core.db.enums import (
-    TipoOrganoEnum,
-    FormaJuridicaEnum,
-    AmbitoReglamentoEnum,
-)
-
-Base = declarative_base()
-
+ 
 # =========================================================
 # MIXINS
 # =========================================================

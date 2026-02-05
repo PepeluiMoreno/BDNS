@@ -6,10 +6,10 @@ src/bdns_core.egg-info/dependency_links.txt
 src/bdns_core.egg-info/requires.txt
 src/bdns_core.egg-info/top_level.txt
 src/bdns_core/db/__init__.py
-src/bdns_core/db/base.py
 src/bdns_core/db/manager.py
 src/bdns_core/db/session.py
 src/bdns_core/db/utils.py
+src/bdns_core/db/models/__init__.py
+src/bdns_core/db/models/base.py
 src/bdns_core/db/models/enums.py
-src/bdns_core/db/models/etl_job.py
 src/bdns_core/db/models/models.py
