@@ -1,3 +1,6 @@
+
+
+
 import { GraphQLClient } from 'graphql-request';
 
 // Configurar el cliente GraphQL
@@ -87,6 +90,73 @@ export const queries = {
       }
     }
   `,
+
+  // Obtener concesión por ID
+  concesionPorId: `
+    query getConcesionById($id: ID!) {
+      concesion(id: $id) {
+        id
+        codigo_bdns
+        convocatoria {
+          id
+          codigo_bdns
+          titulo
+          organo {
+            id
+            nombre
+            codigo
+          }
+        }
+        organo {
+          id
+          nombre
+          codigo
+        }
+        beneficiario {
+          id
+          identificador
+          nombre
+          tipo
+        }
+        fecha_concesion
+        importe
+        descripcion_proyecto
+        programa_presupuestario
+        tipo_ayuda
+        anio
+      }
+    }
+  `,
+
+  // Obtener concesiones por beneficiario
+  concesionesPorBeneficiario: `
+    query getConcesionesPorBeneficiario($beneficiario_id: ID!, $anio: Int, $limite: Int, $offset: Int) {
+      concesiones_por_beneficiario(beneficiario_id: $beneficiario_id, anio: $anio, limite: $limite, offset: $offset) {
+        id
+        codigo_bdns
+        convocatoria {
+          id
+          codigo_bdns
+          titulo
+          organo {
+            id
+            nombre
+          }
+        }
+        beneficiario {
+          id
+          identificador
+          nombre
+          tipo
+        }
+        fecha_concesion
+        importe
+        descripcion_proyecto
+        tipo_ayuda
+        anio
+      }
+    }
+  `,
 };
 
 // Funciones para hacer queries
@@ -124,6 +194,31 @@ export async function fetchConcesiones(filtros = {}, limite = 100, offset = 0) {
   }
 }
 
+export async function fetchConcesionById(id) {
+  try {
+    const data = await client.request(queries.concesionPorId, { id });
+    return data.concesion;
+  } catch (error) {
+    console.error('Error fetching concesión by ID:', error);
+    return null;
+  }
+}
+
+export async function fetchConcesionesPorBeneficiario(beneficiario_id, anio = null, limite = 100, offset = 0) {
+  try {
+    const data = await client.request(queries.concesionesPorBeneficiario, {
+      beneficiario_id,
+      anio,
+      limite,
+      offset,
+    });
+    return data.concesiones_por_beneficiario || [];
+  } catch (error) {
+    console.error('Error fetching concesiones por beneficiario:', error);
+    return [];
+  }
+}
+
 export async function fetchBeneficiarios(filtros = {}, limite = 100, offset = 0) {
   try {
     const data = await client.request(queries.beneficiarios, {
@@ -153,5 +248,3 @@ export async function fetchConcentracion(anio = null, tipo_entidad = null, limit
 }
 
 export default client;
-
-
