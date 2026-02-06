@@ -20,7 +20,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
-from base  import Base
+from .base  import Base
 
  
 # =========================================================
